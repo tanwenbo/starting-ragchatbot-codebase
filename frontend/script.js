@@ -1,11 +1,12 @@
 // API base URL - use relative path to work from any host
 const API_URL = '/api';
 
+
 // Global state
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
+    newChatButton = document.getElementById('newChatButton');
     
     setupEventListeners();
     createNewSession();
@@ -29,6 +31,8 @@ function setupEventListeners() {
         if (e.key === 'Enter') sendMessage();
     });
     
+    // New chat functionality
+    newChatButton.addEventListener('click', startNewChat);
     
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
@@ -122,10 +126,21 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        // Convert markdown links to proper HTML links manually
+        const sourcesHtml = sources.map(source => {
+            // Match markdown link format [text](url)
+            const linkMatch = source.match(/\[([^\]]+)\]\(([^)]+)\)/);
+            if (linkMatch) {
+                const [, text, url] = linkMatch;
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+            }
+            return source; // Return as-is if not a markdown link
+        }).join(', ');
+        
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${sourcesHtml}</div>
             </details>
         `;
     }
@@ -150,6 +165,25 @@ async function createNewSession() {
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+}
+
+function startNewChat() {
+    // Clear current session and conversation
+    currentSessionId = null;
+    chatMessages.innerHTML = '';
+    
+    // Clear any current input
+    chatInput.value = '';
+    
+    // Re-enable input fields if they were disabled
+    chatInput.disabled = false;
+    sendButton.disabled = false;
+    
+    // Show welcome message
+    addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
+    
+    // Focus on input for user convenience
+    chatInput.focus();
 }
 
 // Load course statistics

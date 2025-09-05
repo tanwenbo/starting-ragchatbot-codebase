@@ -126,3 +126,4 @@ Lesson Link: [url]
 - Session ID stored client-side for conversation continuity
 - always use uv to run the server. Do not use pip
 - Always use uv to add dependencies
+- Never start application
